@@ -17,10 +17,12 @@ export default function Vault() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isError, setIsError] = useState(false); 
   const [unlockedVolumes, setUnlockedVolumes] = useState([1]);
+  const [showMeme, setShowMeme] = useState(false); // Meme video ke liye nayi state
 
   const clickAudio = useRef(null);
   const successAudio = useRef(null);
   const errorAudio = useRef(null);
+  const memeVideoRef = useRef(null); // Video player ka reference
 
   useEffect(() => {
     clickAudio.current = new Audio('/sounds/click.mp3');
@@ -89,13 +91,22 @@ export default function Vault() {
       );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
+        // --- SUCCESS FLOW ---
         playSuccess(); 
+        setShowKeypad(false); // Keypad band karo
+        setShowMeme(true);    // Meme video shuru karo
+
+        // Video 4 second baad apne aap band ho jayegi
+        setTimeout(() => {
+          setShowMeme(false);
+        }, 4000);
+
         const codeDoc = querySnapshot.docs[0];
         await updateDoc(doc(db, "access_codes", codeDoc.id), { used: true, usedAt: new Date() });
         const newUnlockedList = [...new Set([...unlockedVolumes, activeTarget])];
         const userRef = doc(db, "users", auth.currentUser.uid);
         await updateDoc(userRef, { unlocked_volumes: newUnlockedList });
-        setShowKeypad(false);
+        
         setEnteredCode("");
       } else {
         playError();
@@ -120,7 +131,6 @@ export default function Vault() {
       <div className="nebula-bg"></div>
 
       <main className="vault-container">
-        {/* Updated Status Bar - Non-floating to prevent overlap */}
         <div className="status-bar-new">
           <div className="status-item"><span className="pulse-green"></span> ONLINE</div>
           <div className="status-item gold">⚡ {tokens} TOKENS</div>
@@ -172,6 +182,21 @@ export default function Vault() {
         </div>
       </main>
 
+      {/* --- MEME VIDEO OVERLAY --- */}
+      {showMeme && (
+        <div className="meme-overlay">
+          <div className="meme-content">
+            <video 
+              ref={memeVideoRef}
+              autoPlay 
+              src="/videos/meme-unlock.mp4" 
+              className="meme-video"
+            />
+            <h2 className="success-text">COMIC UNLOCKED!</h2>
+          </div>
+        </div>
+      )}
+
       {showKeypad && (
         <div className="keypad-overlay">
           <div className={`keypad-ui ${isError ? 'shake' : ''}`}>
@@ -199,19 +224,7 @@ export default function Vault() {
         .vault-page { background: #000; min-height: 100vh; position: relative; color: #fff; font-family: 'Cinzel', serif; overflow-x: hidden; }
         .nebula-bg { position: fixed; inset: 0; background: radial-gradient(circle at 50% 0%, #1a1a00 0%, #000 70%); opacity: 0.6; z-index: 0; }
         
-        /* Fixed: Status bar is now part of the scroll flow */
-        .status-bar-new { 
-          display: flex; 
-          justify-content: space-between; 
-          padding: 15px 5%; 
-          background: rgba(10,10,10,0.4); 
-          border-bottom: 1px solid #222; 
-          font-family: monospace; 
-          font-size: 0.75rem; 
-          margin-bottom: 30px;
-          border-radius: 4px;
-        }
-
+        .status-bar-new { display: flex; justify-content: space-between; padding: 15px 5%; background: rgba(10,10,10,0.4); border-bottom: 1px solid #222; font-family: monospace; font-size: 0.75rem; margin-bottom: 30px; border-radius: 4px; }
         .pulse-green { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #00ff88; animation: blink 1.5s infinite; }
         .gold { color: #ffcc00; text-shadow: 0 0 5px #ffcc00; }
 
@@ -221,41 +234,35 @@ export default function Vault() {
         .scanner-text { text-align: center; color: #444; font-family: monospace; font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 40px; }
 
         .comic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; width: 100%; }
-        
         .vault-card { background: rgba(15,15,15,0.8); border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px; transition: 0.4s; }
         .vault-card:hover { border-color: #ffcc00; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,204,0,0.1); }
         .poster-area { height: 380px; background: #050505; position: relative; overflow: hidden; border-radius: 4px; cursor: pointer; }
-        
         .cover-img { width: 100%; height: 100%; object-fit: cover; }
         .lock-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #080808; }
         .lock-icon { font-size: 2.5rem; color: #1a1a1a; margin-bottom: 10px; }
-        
         .meta-area { padding-top: 15px; }
         .meta-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .vol-id { font-family: monospace; color: #ffcc00; font-size: 0.65rem; }
         .status-tag { font-family: monospace; font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; }
         .status-tag.on { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; }
         .status-tag.off { background: rgba(255,0,0,0.05); color: #ff4757; border: 1px solid #ff4757; }
-
         .unlock-trigger { width: 100%; padding: 10px; background: transparent; border: 1px solid #222; color: #666; cursor: pointer; font-size: 0.8rem; }
         .read-link { display: block; text-align: center; width: 100%; padding: 10px; background: #ffcc00; color: #000; font-weight: bold; text-decoration: none; font-size: 0.8rem; }
+
+        /* Meme Overlay Styles */
+        .meme-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .meme-content { text-align: center; }
+        .meme-video { width: 90%; max-width: 500px; border-radius: 15px; border: 3px solid #ffcc00; box-shadow: 0 0 30px #ffcc00; }
+        .success-text { color: #ffcc00; margin-top: 20px; font-family: monospace; letter-spacing: 5px; }
 
         .keypad-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .keypad-ui { background: #0a0a0a; border: 1px solid #ffcc00; padding: 20px; border-radius: 8px; width: 100%; max-width: 320px; }
         .code-display { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
         .digit { width: 35px; height: 45px; border-bottom: 2px solid #222; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #333; }
         .digit.highlight { color: #ffcc00; border-bottom-color: #ffcc00; }
-        
         .keys-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .key-btn { padding: 12px; background: #111; border: 1px solid #222; color: #fff; font-family: monospace; cursor: pointer; font-size: 1rem; }
         .key-btn:hover { background: #ffcc00; color: #000; }
-
-        @media (max-width: 768px) {
-          .cyber-h1 { font-size: 1.8rem; letter-spacing: 4px; }
-          .vault-container { padding-top: 100px; }
-          .comic-grid { grid-template-columns: 1fr; gap: 20px; }
-          .poster-area { height: 350px; }
-        }
 
         @keyframes blink { 50% { opacity: 0.3; } }
         .shake { animation: shake 0.5s linear; }
