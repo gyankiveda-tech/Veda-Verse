@@ -25,7 +25,8 @@ export default function VerifyOTP() {
         setError('');
 
         try {
-            const res = await fetch('https://veda-verse-uw47.onrender.com/api/auth/verify-otp', {
+            // ✅ UPDATED: Using the new live Render URL
+            const res = await fetch('https://veda-verse-9hpl.onrender.com/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp })
@@ -41,7 +42,7 @@ export default function VerifyOTP() {
                 setError(data.msg || "INVALID CODE DETECTED.");
             }
         } catch (err) {
-            setError("CONNECTION INTERRUPTED. TRY AGAIN.");
+            setError("CONNECTION INTERRUPTED. CHECK YOUR NEURAL LINK.");
         } finally {
             setLoading(false);
         }
@@ -91,7 +92,6 @@ export default function VerifyOTP() {
                     justify-content: center;
                     background: #000;
                     color: #fff;
-                    font-family: 'Orbitron', sans-serif;
                 }
                 .cyber-box {
                     background: rgba(10, 10, 10, 0.9);

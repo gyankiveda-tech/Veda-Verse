@@ -13,7 +13,6 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  // Agar user pehle se login hai, toh use Vault bhejo
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -25,13 +24,13 @@ export default function Register() {
     return () => unsubscribe();
   }, [router]);
 
-  // --- Naya: Backend API Se Registration (OTP Logic) ---
   const handleRegister = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const res = await fetch('https://veda-verse-uw47.onrender.com/api/auth/register', {
+      // ✅ UPDATED: Using the new live Render URL provided
+      const res = await fetch('https://veda-verse-9hpl.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
@@ -40,7 +39,6 @@ export default function Register() {
       const data = await res.json();
 
       if (res.ok) {
-        // Zaroori: Email ko save karna taaki verify-otp page par use ho sake
         localStorage.setItem('tempEmail', email);
         alert("OTP sent to your neural link (email). Verify to initialize.");
         router.push('/verify-otp');
@@ -48,13 +46,13 @@ export default function Register() {
         alert(data.msg || "Registration Protocol Failed.");
       }
     } catch (error) {
-      alert("Nexus Connection Error: " + error.message);
+      // ✅ Handle case where server sends non-JSON error (Server Err... is not valid JSON)
+      alert("Nexus Connection Error: Server is initializing. Please try again in 30 seconds.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // --- Google Se Quick Registration (Firebase) ---
   const handleGoogleSignUp = async () => {
     try {
       await signInWithGoogle();
