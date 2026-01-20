@@ -4,7 +4,7 @@ import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
   collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, doc, updateDoc, increment, setDoc, getDoc 
+  serverTimestamp, doc, updateDoc, increment, setDoc, getDoc, arrayUnion, arrayRemove 
 } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 
@@ -13,15 +13,17 @@ export default function ReadVol1() {
   const [user, setUser] = useState(null);
   const [comment, setComment] = useState('');
   const [allComments, setAllComments] = useState([]);
-  const [stats, setStats] = useState({ likes: 0, dislikes: 0, views: 0 }); // Views added here
+  const [stats, setStats] = useState({ likes: 0, dislikes: 0, views: 0 });
   const [userAction, setUserAction] = useState(null); 
   const [showHeart, setShowHeart] = useState(false);
+  
+  const [replyingTo, setReplyingTo] = useState(null); 
+  const [replyText, setReplyText] = useState('');
   
   const totalPages = 28; 
   const router = useRouter();
   const clickAudio = useRef(null);
 
-  // --- TIME FORMATTER ---
   const formatTime = (createdAt) => {
     if (!createdAt) return "Just now";
     const date = createdAt.seconds ? new Date(createdAt.seconds * 1000) : new Date(createdAt);
@@ -34,7 +36,9 @@ export default function ReadVol1() {
   };
 
   useEffect(() => {
-    clickAudio.current = new Audio('/sounds/click.mp3');
+    if (typeof window !== 'undefined') {
+      clickAudio.current = new Audio('/sounds/click.mp3');
+    }
   }, []);
 
   const playClick = () => {
@@ -55,19 +59,16 @@ export default function ReadVol1() {
   useEffect(() => {
     if (!db || !user) return;
 
-    // 1. AUTO-INCREMENT VIEW (Jab user page khole)
     const incrementView = async () => {
         const statsRef = doc(db, "vol1_data", "stats");
         try {
             await updateDoc(statsRef, { views: increment(1) });
         } catch (e) {
-            // Agar doc nahi hai toh create karo
             await setDoc(statsRef, { likes: 0, dislikes: 0, views: 1 }, { merge: true });
         }
     };
     incrementView();
 
-    // 2. Fetching Comments
     const unsubComments = onSnapshot(query(collection(db, "vol1_comments"), orderBy("createdAt", "desc")), (snap) => {
       const fetched = snap.docs.map(doc => ({ 
         id: doc.id, 
@@ -77,14 +78,13 @@ export default function ReadVol1() {
       setAllComments(fetched);
     });
 
-    // 3. Fetching Stats (Likes, Dislikes, Views)
     const unsubStats = onSnapshot(doc(db, "vol1_data", "stats"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setStats({
           likes: Math.max(0, data.likes || 0),
           dislikes: Math.max(0, data.dislikes || 0),
-          views: data.views || 0 // New Views state
+          views: data.views || 0 
         });
       }
     });
@@ -132,21 +132,56 @@ export default function ReadVol1() {
     } catch (error) { console.error(error); }
   };
 
-  const handleComment = async (e) => {
+  const isDuplicate = (newText, existingComments) => {
+    const cleanNew = newText.toLowerCase().replace(/\s/g, '');
+    return existingComments.some(c => {
+        const cleanOld = c.text.toLowerCase().replace(/\s/g, '');
+        return cleanOld.includes(cleanNew) || cleanNew.includes(cleanOld);
+    });
+  };
+
+  const handlePostComment = async (e, parentId = null) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    const textToPost = parentId ? replyText : comment;
+    if (!textToPost.trim()) return;
+    
+    const recentComments = allComments.slice(0, 10);
+    if (isDuplicate(textToPost, recentComments)) {
+        alert("Transmission Error: Similar signal already exists via Quantum Entanglement.");
+        return;
+    }
+
     playClick(); 
     try {
       await addDoc(collection(db, "vol1_comments"), {
-        text: comment,
-        userName: user.displayName || "Commander",
+        text: textToPost,
+        userName: user.displayName || "Agent",
         userId: user.uid,
+        userPhoto: user.photoURL || null,
         createdAt: serverTimestamp(),
-        isFake: false 
+        parentId: parentId,
+        isFake: false,
+        likes: 0,
+        dislikes: 0,
+        pageRef: currentPage
       });
-      setComment('');
+      
+      if (parentId) {
+          setReplyingTo(null);
+          setReplyText('');
+      } else {
+          setComment('');
+      }
     } catch (error) { console.error(error); }
   };
+
+  const handleCommentReaction = async (commentId, type) => {
+      const commentRef = doc(db, "vol1_comments", commentId);
+      await updateDoc(commentRef, { [type]: increment(1) });
+  };
+
+  const rootComments = allComments.filter(c => !c.parentId);
+  const getReplies = (parentId) => allComments.filter(c => c.parentId === parentId).sort((a,b) => a.createdAt - b.createdAt);
 
   if (!user) return <div className="cosmic-bg"></div>;
 
@@ -157,20 +192,20 @@ export default function ReadVol1() {
       
       {showHeart && <div className="heart-explosion">🔥</div>}
 
-      <main style={{ paddingTop: '110px', paddingBottom: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <main style={{ paddingTop: '80px', paddingBottom: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         
-        <h1 style={{ color: '#ffcc00', letterSpacing: '3px' }}>GYAN KI VEDA - VOL 1</h1>
+        <h1 style={{ color: '#ffcc00', letterSpacing: '3px', textTransform: 'uppercase', fontSize: '1.2rem', marginBottom: '10px' }}>Gyan Ki Veda - Vol 1</h1>
         
-        {/* VIEW COUNTER UI */}
         <div className="view-badge">
             <span className="live-dot"></span> {stats.views.toLocaleString()} READS
         </div>
 
+        {/* --- OPTIMIZED COMIC BOX --- */}
         <div className="comic-box">
           <img 
             src={`/comics/vol1/${currentPage}.jpg`} 
             alt={`Page ${currentPage}`}
-            style={{ width: '100%', display: 'block', boxShadow: '0 0 50px rgba(0,0,0,0.8)' }} 
+            className="comic-img"
           />
         </div>
 
@@ -194,7 +229,7 @@ export default function ReadVol1() {
           <button onClick={() => { if(currentPage < totalPages) { playClick(); setCurrentPage(p => p+1); } }} className="btn-gold-nav">NEXT</button>
         </div>
 
-        <hr style={{ width: '90%', maxWidth: '650px', borderColor: '#111', margin: '60px 0 40px' }} />
+        <hr style={{ width: '90%', maxWidth: '650px', borderColor: '#111', margin: '40px 0' }} />
 
         <section style={{ width: '95%', maxWidth: '650px', paddingBottom: '50px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -202,10 +237,10 @@ export default function ReadVol1() {
             <span style={{ color: '#00ff00', fontSize: '0.8rem' }}>● ENCRYPTED_FEED</span>
           </div>
 
-          <form onSubmit={handleComment} style={{ display: 'flex', gap: '10px', marginBottom: '40px' }}>
+          <form onSubmit={(e) => handlePostComment(e, null)} style={{ display: 'flex', gap: '10px', marginBottom: '40px' }}>
             <input 
               type="text" 
-              placeholder="Post a transmission..." 
+              placeholder={`Write a transmission for Page ${currentPage}...`} 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               style={{ flex: 1, background: '#050505', border: '1px solid #222', padding: '15px', color: '#ffcc00', outline: 'none' }}
@@ -214,13 +249,38 @@ export default function ReadVol1() {
           </form>
 
           <div className="comments-list">
-            {allComments.map(c => (
+            {rootComments.map(c => (
               <div key={c.id} className={`comment-card ${c.isFake ? 'ghost-effect' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <strong style={{ color: '#ffcc00', fontSize: '0.9rem' }}>{c.userName}</strong>
+                  <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                    <strong style={{ color: '#ffcc00', fontSize: '0.9rem' }}>{c.userName}</strong>
+                    {c.pageRef && <span style={{fontSize:'0.6rem', background:'#222', padding:'2px 6px', borderRadius:'4px', color:'#777'}}>Pg {c.pageRef}</span>}
+                  </div>
                   <span style={{ color: '#333', fontSize: '0.7rem' }}>{c.displayTime}</span>
                 </div>
-                <p style={{ color: '#bbb', fontSize: '0.9rem', margin: 0 }}>{c.text}</p>
+                <p style={{ color: '#bbb', fontSize: '0.9rem', margin: '5px 0 10px' }}>{c.text}</p>
+                <div className="comment-actions">
+                    <button onClick={() => handleCommentReaction(c.id, 'likes')} className="action-btn">▲ {c.likes || 0}</button>
+                    <button onClick={() => handleCommentReaction(c.id, 'dislikes')} className="action-btn">▼ {c.dislikes || 0}</button>
+                    <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)} className="action-btn" style={{color:'#ffcc00'}}>
+                        {replyingTo === c.id ? 'CANCEL' : 'REPLY'}
+                    </button>
+                </div>
+                {replyingTo === c.id && (
+                    <form onSubmit={(e) => handlePostComment(e, c.id)} style={{ marginTop:'10px', display:'flex', gap:'5px' }}>
+                        <input autoFocus type="text" placeholder="Reply to this signal..." value={replyText} onChange={(e)=>setReplyText(e.target.value)} style={{ flex:1, background: '#111', border: 'none', padding: '8px', color: '#fff', fontSize:'0.8rem' }} />
+                        <button type="submit" style={{background:'#ffcc00', border:'none', cursor:'pointer', fontWeight:'bold', fontSize:'0.7rem', padding: '0 10px'}}>➤</button>
+                    </form>
+                )}
+                {getReplies(c.id).map(reply => (
+                    <div key={reply.id} className="reply-card">
+                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <strong style={{ color: '#999', fontSize: '0.8rem' }}>{reply.userName}</strong>
+                            <span style={{ color: '#333', fontSize: '0.6rem' }}>{reply.displayTime}</span>
+                        </div>
+                        <p style={{ color: '#ccc', fontSize: '0.8rem', margin: '2px 0' }}>{reply.text}</p>
+                    </div>
+                ))}
               </div>
             ))}
           </div>
@@ -232,8 +292,25 @@ export default function ReadVol1() {
         .live-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
-        .stats-bar { display: flex; gap: 15px; margin: 30px 0; }
-        .comic-box { width: 95%; maxWidth: 650px; border: 1px solid #111; background: #050505; position: relative; }
+        .stats-bar { display: flex; gap: 15px; margin: 20px 0; }
+
+        /* --- COMIC ZOOM FIX --- */
+        .comic-box { 
+          width: 100%; 
+          max-width: 800px; 
+          display: flex; 
+          justify-content: center; 
+          background: #000; 
+          overflow: hidden;
+        }
+        .comic-img { 
+          width: 100%; 
+          height: auto; 
+          max-height: 85vh; /* PC par screen height ke andar rahega */
+          object-fit: contain; 
+          box-shadow: 0 0 50px rgba(0,0,0,0.9);
+        }
+
         .inter-btn { background: #0a0a0a; border: 1px solid #222; color: #fff; padding: 12px 25px; border-radius: 4px; cursor: pointer; transition: 0.3s; font-weight: bold; }
         .share-btn:hover { background: #fff; color: #000; }
         .btn-active-like { border-color: #ffcc00; color: #ffcc00; background: rgba(255, 204, 0, 0.05); }
@@ -246,7 +323,13 @@ export default function ReadVol1() {
         
         .comment-card { background: #050505; padding: 15px; border-left: 2px solid #222; margin-bottom: 15px; transition: 0.3s; }
         .comment-card:hover { border-left-color: #ffcc00; background: #080808; }
-        .ghost-effect { border-left-style: dashed; }
+        .reply-card { margin-left: 20px; margin-top: 10px; padding: 10px; background: #111; border-left: 1px solid #444; }
+        .ghost-effect { border-left-style: dashed; opacity: 0.9; }
+        
+        .comment-actions { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #1a1a1a; padding-top: 5px; }
+        .action-btn { background: none; border: none; color: #666; font-size: 0.75rem; cursor: pointer; padding: 0; }
+        .action-btn:hover { color: #fff; }
+
         .heart-explosion { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; z-index: 2000; animation: heart-out 1.5s forwards; pointer-events: none; }
         @keyframes heart-out { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(2); } }
       `}</style>
