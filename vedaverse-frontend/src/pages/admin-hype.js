@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
+import { 
+    collection, addDoc, doc, updateDoc, increment, 
+    getDoc, setDoc, getDocs, writeBatch, query, limit 
+} from 'firebase/firestore';
 import { useRouter } from 'next/router';
 import { generateMassiveComments } from '../lib/ghostData';
 
@@ -12,7 +15,10 @@ export default function AdminHype() {
     const [volume, setVolume] = useState('vol1');
     const [count, setCount] = useState(10);
     const [status, setStatus] = useState('');
-    const [isAutoBoosting, setIsAutoBoosting] = useState(false); // Engine Switch State
+    const [isAutoBoosting, setIsAutoBoosting] = useState(false);
+    const [isInjecting, setIsInjecting] = useState(false);
+    
+    const stopSignal = useRef(false);
     const router = useRouter();
 
     const ADMIN_EMAIL = "prabhatsinghjsr75@gmail.com"; 
@@ -30,149 +36,205 @@ export default function AdminHype() {
         return () => unsubscribe();
     }, [router]);
 
-    // --- 🤖 AUTO-HYPE ENGINE LOGIC ---
+    // --- 🤖 AUTO-HYPE ENGINE ---
     useEffect(() => {
         let interval;
         if (isAutoBoosting) {
-            setStatus(`🔴 ENGINE ACTIVE: Boosting ${volume} naturally...`);
+            setStatus(`🔴 ENGINE ACTIVE: Injecting signals into ${volume.toUpperCase()}...`);
             interval = setInterval(async () => {
                 const statsRef = doc(db, `${volume}_data`, "stats");
-                
-                // Random values for natural look
-                const randomViews = Math.floor(Math.random() * 7) + 2; // 2 to 8 views
-                const chanceOfLike = Math.random() > 0.8 ? 1 : 0; // 20% chance of a random like
-
                 try {
                     await updateDoc(statsRef, {
-                        views: increment(randomViews),
-                        likes: increment(chanceOfLike)
+                        views: increment(Math.floor(Math.random() * 5) + 1),
+                        likes: increment(Math.random() > 0.85 ? 1 : 0)
                     });
                 } catch (e) {
-                    console.error("Engine Error:", e);
+                    await setDoc(statsRef, { likes: 1, dislikes: 0, views: 10 }, { merge: true });
                 }
-            }, 12000); // Har 12 second mein injection
+            }, 15000); 
         } else {
             setStatus("⚪ Engine Standby.");
         }
         return () => clearInterval(interval);
     }, [isAutoBoosting, volume]);
 
-    // --- MASSIVE COMMENT INJECTOR ---
+    // --- 🚀 MASSIVE COMMENT INJECTOR (DATE FIX APPLIED) ---
     const injectHype = async () => {
-        setStatus(`🚀 Commencing injection of ${count} Indian users into ${volume}...`);
+        const totalToInject = parseInt(count);
+        if (totalToInject > 100 && !confirm(`Confirm: Injecting ${totalToInject} comments with PAST dates?`)) return;
+        
+        setIsInjecting(true);
+        stopSignal.current = false;
+        setStatus(`🚀 Starting injection of ${totalToInject} signals...`);
+
         try {
-            const fakeComments = generateMassiveComments(volume, parseInt(count));
+            const fakeComments = generateMassiveComments(volume, totalToInject);
             const colName = `${volume}_comments`;
+            let successCount = 0;
+
             for (const comment of fakeComments) {
-                await addDoc(collection(db, colName), comment);
+                if (stopSignal.current) {
+                    setStatus(`🛑 TERMINATED: Killed at ${successCount} units.`);
+                    setIsInjecting(false);
+                    return;
+                }
+
+                // FIXED: 'serverTimestamp()' ko hatakar 'comment.createdAt' bhej rahe hain
+                await addDoc(collection(db, colName), {
+                    userName: comment.userName,
+                    text: comment.text,
+                    isFake: true, 
+                    likes: comment.likes || 0,
+                    createdAt: comment.createdAt // Yeh ghostData se aayi hui random date lega
+                });
+                
+                successCount++;
+                if (successCount % 10 === 0) setStatus(`📡 Injected: ${successCount}/${totalToInject}...`);
             }
-            setStatus(`✅ Mission AccomplISHED! ${count} organic comments added.`);
+            setStatus(`✅ COMPLETE: ${totalToInject} signals active with unique past dates.`);
         } catch (error) {
             console.error(error);
-            setStatus("❌ Error: Check Firebase permissions.");
+            setStatus("❌ CRITICAL ERROR: Injection failed.");
+        }
+        setIsInjecting(false);
+    };
+
+    const terminateInjection = () => {
+        stopSignal.current = true;
+        setStatus("⚠️ Sending kill signal...");
+    };
+
+    // --- 🗑 SMART WIPE ---
+    const clearDatabase = async () => {
+        const check = confirm(`DANGER: This will wipe ALL comments in ${volume}. Proceed?`);
+        if (!check) return;
+
+        setStatus("🧹 Initializing Deep Clean...");
+        const colName = `${volume}_comments`;
+        
+        try {
+            let deletedTotal = 0;
+            while (true) {
+                const q = query(collection(db, colName), limit(400)); 
+                const snapshot = await getDocs(q);
+                if (snapshot.size === 0) break;
+
+                const batch = writeBatch(db);
+                snapshot.docs.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+                deletedTotal += snapshot.size;
+                setStatus(`🧹 Wiping... Deleted ${deletedTotal} so far.`);
+            }
+            setStatus(`✨ SUCCESS: Database Purged. Total ${deletedTotal} comments removed.`);
+        } catch (error) {
+            console.error(error);
+            setStatus("❌ WIPE ERROR: Firebase denied the request.");
         }
     };
 
-    // --- STATS MANIPULATOR ---
+    // --- ⚡ STATS OVERRIDE ---
     const updateStats = async (type, amount) => {
-        setStatus(`⚡ Updating ${type} by ${amount}...`);
+        setStatus(`⚡ Modifying ${type} in ${volume}...`);
         const statsRef = doc(db, `${volume}_data`, "stats");
         try {
-            const snap = await getDoc(statsRef);
-            if (!snap.exists()) {
-                await setDoc(statsRef, { likes: 0, dislikes: 0, views: amount }, {merge: true});
-            } else {
-                await updateDoc(statsRef, { [type]: increment(amount) });
-            }
-            setStatus(`✨ ${type.toUpperCase()} boosted by ${amount}!`);
+            await updateDoc(statsRef, { [type]: increment(amount) });
+            setStatus(`✨ ${type.toUpperCase()} Updated.`);
         } catch (error) {
-            console.error(error);
-            setStatus("❌ Stat update failed.");
+            setStatus("❌ Error: Stat update failed.");
         }
     };
 
-    if (loading) return <div className="admin-loading">Checking Identity...</div>;
+    if (loading) return <div className="admin-loading">BOOTING_GOD_MODE...</div>;
     if (!isAdmin) return null;
 
     return (
         <div className="admin-container">
-            <h1>🛠 VEDAVERSE GOD MODE</h1>
-            <p className="user-badge">Authenticated Commander: {user.email}</p>
+            <header className="admin-header">
+                <h1>🛠 VEDAVERSE GOD MODE</h1>
+                <div className="status-bar">
+                    <span>ADMIN: {user.email}</span>
+                    <span>SYSTEM_READY</span>
+                </div>
+            </header>
 
             <div className="control-panel">
-                {/* 1. VOLUME SELECTION */}
-                <section className="card">
-                    <h3>1. Target Timeline</h3>
+                <section className="card highlight">
+                    <h3>1. TARGET COLLECTION</h3>
                     <select value={volume} onChange={(e) => setVolume(e.target.value)}>
-                        <option value="vol1">Volume 1 (Gyan Ki Veda)</option>
-                        <option value="vol2">Volume 2 (The Awakening)</option>
+                        <option value="vol1">VOLUME 1 (GYAN KI VEDA)</option>
+                        <option value="vol2">VOLUME 2 (THE AWAKENING)</option>
                     </select>
                 </section>
 
-                {/* 2. THE AUTO-ENGINE SWITCH */}
-                <section className="card engine-card">
-                    <h3>🤖 24/7 AUTO-HYPE ENGINE</h3>
-                    <p>Dheere-dheere views aur likes badhata rahega.</p>
-                    <button 
-                        onClick={() => setIsAutoBoosting(!isAutoBoosting)} 
-                        className={isAutoBoosting ? 'btn-stop' : 'btn-start'}
-                    >
-                        {isAutoBoosting ? "STOP AUTO-BOOST" : "START AUTO-BOOST"}
+                <section className={`card engine-card ${isAutoBoosting ? 'active-glow' : ''}`}>
+                    <h3>🤖 AUTO-GROWTH ENGINE</h3>
+                    <button onClick={() => setIsAutoBoosting(!isAutoBoosting)} className={isAutoBoosting ? 'btn-stop' : 'btn-start'}>
+                        {isAutoBoosting ? "OFFLINE ENGINE" : "ONLINE ENGINE"}
                     </button>
                 </section>
 
-                {/* 3. VIEWS BOOSTER */}
                 <section className="card">
-                    <h3>3. Instant Views (Manual)</h3>
+                    <h3>3. STATS INJECTION</h3>
                     <div className="btn-group">
-                        <button onClick={() => updateStats('views', 1000)} style={{background: '#00d1ff', color: '#000'}}>+1K</button>
-                        <button onClick={() => updateStats('views', 5000)} style={{background: '#00d1ff', color: '#000'}}>+5K</button>
+                        <button onClick={() => updateStats('views', 500)}>+500 Views</button>
+                        <button onClick={() => updateStats('views', 1000)}>+1K Views</button>
                     </div>
                 </section>
 
-                {/* 4. COMMENTS INJECTOR */}
                 <section className="card">
-                    <h3>4. Ghost Transmission</h3>
-                    <input 
-                        type="number" 
-                        value={count} 
-                        onChange={(e) => setCount(e.target.value)}
-                        placeholder="Amount..."
-                    />
-                    <button onClick={injectHype} className="btn-inject">RUN MASS INJECTION</button>
+                    <h3>4. MASS COMMENT INJECTION</h3>
+                    <div className="input-row">
+                        <input type="number" value={count} onChange={(e) => setCount(e.target.value)} />
+                        {!isInjecting ? (
+                            <button onClick={injectHype} className="btn-inject">EXECUTE</button>
+                        ) : (
+                            <button onClick={terminateInjection} className="btn-stop">TERMINATE</button>
+                        )}
+                    </div>
                 </section>
 
-                {/* 5. LIKES/DISLIKES */}
                 <section className="card">
-                    <h3>5. Engagement Control</h3>
+                    <h3>5. SENTIMENT CONTROL</h3>
                     <div className="btn-group">
-                        <button onClick={() => updateStats('likes', 100)}>+100 👍</button>
+                        <button onClick={() => updateStats('likes', 50)}>+50 👍</button>
                         <button className="btn-dis" onClick={() => updateStats('dislikes', 10)}>+10 👎</button>
                     </div>
                 </section>
+
+                <section className="card danger-zone">
+                    <h3>🚨 SYSTEM PURGE</h3>
+                    <p>Wipe all signals from current collection.</p>
+                    <button onClick={clearDatabase} className="btn-purge">WIPE ALL COMMENTS</button>
+                </section>
             </div>
 
-            <p className="status-msg">SYSTEM STATUS: {status}</p>
+            <div className="console-output">
+                <p className="status-msg">{`>> ${status}`}</p>
+            </div>
 
             <style jsx>{`
-                .admin-container { background: #000; color: #ffcc00; min-height: 100vh; padding: 50px; font-family: 'Courier New', monospace; }
-                h1 { border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
-                .user-badge { color: #00ff00; margin-bottom: 30px; }
-                .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                .card { background: #0a0a0a; padding: 20px; border: 1px solid #222; border-radius: 8px; }
-                .engine-card { border: 1px solid #00ff00; box-shadow: 0 0 10px rgba(0, 255, 0, 0.1); }
-                
-                select, input { background: #000; border: 1px solid #ffcc00; color: #fff; padding: 10px; margin-bottom: 10px; width: 100%; }
-                button { background: #ffcc00; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-                
+                .admin-container { background: #000; color: #ffcc00; min-height: 100vh; padding: 40px; font-family: 'Courier New', monospace; }
+                .admin-header { border-bottom: 2px solid #ffcc00; margin-bottom: 30px; }
+                .status-bar { display: flex; justify-content: space-between; color: #00ff00; font-size: 0.8rem; }
+                .control-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                .card { background: #0a0a0a; padding: 20px; border: 1px solid #222; border-radius: 4px; }
+                .highlight { border-color: #ffcc00; }
+                .danger-zone { border: 1px solid #ff4757; }
+                .active-glow { border-color: #00ff00; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2); }
+                select, input { background: #111; border: 1px solid #333; color: #ffcc00; padding: 12px; width: 100%; margin: 10px 0; }
+                button { background: #ffcc00; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; }
                 .btn-start { background: #00ff00; width: 100%; }
                 .btn-stop { background: #ff4757; color: #fff; width: 100%; }
-                .btn-inject { background: #ff4757; color: #fff; width: 100%; }
-                .btn-dis { background: #333; color: #ff4757; border: 1px solid #ff4757; }
+                .btn-inject { background: #ffcc00; color: #000; width: 100%; }
+                .btn-purge { background: #ff4757; color: #fff; width: 100%; }
                 .btn-group { display: flex; gap: 10px; }
-                
-                .status-msg { margin-top: 30px; color: #00ff00; background: #111; padding: 15px; border-radius: 4px; border-left: 5px solid #00ff00; }
-                @media (max-width: 768px) { .control-panel { grid-template-columns: 1fr; } }
+                .btn-dis { background: #222; color: #ff4757; border: 1px solid #ff4757; }
+                .input-row { display: flex; gap: 10px; }
+                .console-output { margin-top: 40px; background: #050505; border: 1px dashed #333; padding: 15px; }
+                .status-msg { color: #00ff00; margin: 0; }
             `}</style>
         </div>
     );
