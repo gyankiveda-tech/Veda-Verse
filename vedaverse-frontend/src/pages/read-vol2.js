@@ -16,11 +16,16 @@ export default function ReadVol2() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     
+    // --- NEW STATES FOR INTERACTION ---
     const [comment, setComment] = useState('');
     const [allComments, setAllComments] = useState([]);
-    const [stats, setStats] = useState({ likes: 0, dislikes: 0, views: 0 }); // Added views state
+    const [stats, setStats] = useState({ likes: 0, dislikes: 0, views: 0 });
     const [userAction, setUserAction] = useState(null); 
     const [showHeart, setShowHeart] = useState(false);
+
+    // Reply Logic States
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [replyText, setReplyText] = useState('');
 
     const totalPages = 46; 
     const clickAudio = useRef(null);
@@ -38,7 +43,9 @@ export default function ReadVol2() {
     };
 
     useEffect(() => {
-        clickAudio.current = new Audio('/sounds/click.mp3');
+        if (typeof window !== 'undefined') {
+            clickAudio.current = new Audio('/sounds/click.mp3');
+        }
     }, []);
 
     const playClick = () => {
@@ -48,6 +55,7 @@ export default function ReadVol2() {
         }
     };
 
+    // --- AUTH & SECURITY CHECK ---
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
@@ -68,10 +76,10 @@ export default function ReadVol2() {
         return () => unsubscribe();
     }, [router]);
 
+    // --- DATA FETCHING ---
     useEffect(() => {
         if (!db || !user || !isAuthorized) return;
 
-        // 1. AUTO-INCREMENT VIEW (Real user entry)
         const incrementView = async () => {
             const statsRef = doc(db, "vol2_data", "stats");
             try {
@@ -82,7 +90,6 @@ export default function ReadVol2() {
         };
         incrementView();
 
-        // 2. Fetch Comments
         const unsubComments = onSnapshot(query(collection(db, "vol2_comments"), orderBy("createdAt", "desc")), (snap) => {
             const fetchedComments = snap.docs.map(doc => ({ 
                 id: doc.id, 
@@ -92,7 +99,6 @@ export default function ReadVol2() {
             setAllComments(fetchedComments);
         });
 
-        // 3. Fetch Stats (Including Views)
         const unsubStats = onSnapshot(doc(db, "vol2_data", "stats"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
@@ -148,19 +154,57 @@ export default function ReadVol2() {
         } catch (error) { console.error(error); }
     };
 
-    const handleComment = async (e) => {
-        e.preventDefault();
-        if (!comment.trim()) return;
-        playClick();
-        await addDoc(collection(db, "vol2_comments"), {
-            text: comment,
-            userName: user.displayName || "Commander",
-            userId: user.uid,
-            createdAt: serverTimestamp(),
-            isFake: false 
+    const isDuplicate = (newText, existingComments) => {
+        const cleanNew = newText.toLowerCase().replace(/\s/g, '');
+        return existingComments.some(c => {
+            const cleanOld = c.text.toLowerCase().replace(/\s/g, '');
+            return cleanOld.includes(cleanNew) || cleanNew.includes(cleanOld);
         });
-        setComment('');
     };
+
+    const handlePostComment = async (e, parentId = null) => {
+        e.preventDefault();
+        const textToPost = parentId ? replyText : comment;
+
+        if (!textToPost.trim()) return;
+
+        const recentComments = allComments.slice(0, 10);
+        if (isDuplicate(textToPost, recentComments)) {
+            alert("System Alert: Duplicate frequency detected. Please refine your signal.");
+            return;
+        }
+
+        playClick();
+        try {
+            await addDoc(collection(db, "vol2_comments"), {
+                text: textToPost,
+                userName: user.displayName || "Agent",
+                userId: user.uid,
+                userPhoto: user.photoURL || null,
+                createdAt: serverTimestamp(),
+                parentId: parentId,
+                isFake: false,
+                likes: 0,
+                dislikes: 0,
+                pageRef: currentPage
+            });
+
+            if (parentId) {
+                setReplyingTo(null);
+                setReplyText('');
+            } else {
+                setComment('');
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    const handleCommentReaction = async (commentId, type) => {
+        const commentRef = doc(db, "vol2_comments", commentId);
+        await updateDoc(commentRef, { [type]: increment(1) });
+    };
+
+    const rootComments = allComments.filter(c => !c.parentId);
+    const getReplies = (parentId) => allComments.filter(c => c.parentId === parentId).sort((a,b) => a.createdAt - b.createdAt);
 
     if (loading) return <div className="loader">DECRYPTING_FILES...</div>;
     if (!isAuthorized) return null;
@@ -176,22 +220,15 @@ export default function ReadVol2() {
                     <p>PART 2: THE AWAKENING</p>
                 </header>
 
-                {/* VIEW COUNTER BADGE */}
                 <div className="view-badge">
                     <span className="live-dot"></span> {stats.views.toLocaleString()} READS
                 </div>
 
                 <div className="social-actions">
-                    <button 
-                        onClick={() => handleInteraction('liked')} 
-                        className={`action-btn ${userAction === 'liked' ? 'active-like' : ''}`}
-                    >
+                    <button onClick={() => handleInteraction('liked')} className={`action-btn ${userAction === 'liked' ? 'active-like' : ''}`}>
                         <span className="icon">👍</span> {stats.likes}
                     </button>
-                    <button 
-                        onClick={() => handleInteraction('disliked')} 
-                        className={`action-btn ${userAction === 'disliked' ? 'active-dislike' : ''}`}
-                    >
+                    <button onClick={() => handleInteraction('disliked')} className={`action-btn ${userAction === 'disliked' ? 'active-dislike' : ''}`}>
                         <span className="icon">👎</span> {stats.dislikes}
                     </button>
                     <button className="action-btn share" onClick={() => { playClick(); navigator.clipboard.writeText(window.location.href); alert("Signal Copied!"); }}>
@@ -201,6 +238,7 @@ export default function ReadVol2() {
 
                 <div className="divider"></div>
 
+                {/* --- OPTIMIZED IMAGE FRAME --- */}
                 <div className="image-frame">
                     <img src={`/comics/vol2/${currentPage}.jpg`} alt={`Page ${currentPage}`} className="main-img" />
                 </div>
@@ -211,19 +249,44 @@ export default function ReadVol2() {
                         <div className="live-badge-red">● LIVE</div>
                     </div>
                     
-                    <form onSubmit={handleComment} className="input-group">
-                        <input type="text" placeholder="Enter transmission signal..." value={comment} onChange={(e) => setComment(e.target.value)} />
+                    <form onSubmit={(e) => handlePostComment(e, null)} className="input-group">
+                        <input type="text" placeholder={`Enter transmission signal for Page ${currentPage}...`} value={comment} onChange={(e) => setComment(e.target.value)} />
                         <button type="submit" className="post-btn">SEND</button>
                     </form>
 
                     <div className="comments-list">
-                        {allComments.map(c => (
+                        {rootComments.map(c => (
                             <div key={c.id} className={`comment-card ${c.isFake ? 'ghost-fade' : ''}`}>
                                 <div className="comment-header">
-                                    <span className="user-name">{c.userName}</span>
+                                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                                        <span className="user-name">{c.userName}</span>
+                                        {c.pageRef && <span className="page-tag">Pg {c.pageRef}</span>}
+                                    </div>
                                     <span className="comment-time">{c.displayTime}</span>
                                 </div>
                                 <p className="comment-text">{c.text}</p>
+                                <div className="comment-actions">
+                                    <button onClick={() => handleCommentReaction(c.id, 'likes')} className="small-action">▲ {c.likes || 0}</button>
+                                    <button onClick={() => handleCommentReaction(c.id, 'dislikes')} className="small-action">▼ {c.dislikes || 0}</button>
+                                    <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)} className="small-action reply-trigger">
+                                        {replyingTo === c.id ? 'CANCEL' : 'REPLY'}
+                                    </button>
+                                </div>
+                                {replyingTo === c.id && (
+                                    <form onSubmit={(e) => handlePostComment(e, c.id)} className="reply-form">
+                                        <input autoFocus type="text" placeholder="Reply to signal..." value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                                        <button type="submit">➤</button>
+                                    </form>
+                                )}
+                                {getReplies(c.id).map(reply => (
+                                    <div key={reply.id} className="reply-card">
+                                        <div className="comment-header">
+                                            <span className="user-name sub-user">{reply.userName}</span>
+                                            <span className="comment-time">{reply.displayTime}</span>
+                                        </div>
+                                        <p className="comment-text sub-text">{reply.text}</p>
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>
@@ -239,10 +302,9 @@ export default function ReadVol2() {
 
             <style jsx>{`
                 .read-page { background: #000; min-height: 100vh; color: #fff; font-family: 'Courier New', monospace; }
-                .comic-container { max-width: 800px; margin: 0 auto; padding: 120px 20px 150px; text-align: center; }
-                .comic-header h1 { color: #ffcc00; font-size: 2rem; letter-spacing: 2px; margin-bottom: 5px; }
+                .comic-container { max-width: 800px; margin: 0 auto; padding: 100px 20px 150px; text-align: center; }
+                .comic-header h1 { color: #ffcc00; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
                 
-                /* View Badge Style */
                 .view-badge { display: inline-flex; align-items: center; gap: 8px; background: #0a0a0a; border: 1px solid #222; padding: 5px 15px; border-radius: 20px; color: #00ff00; font-size: 0.8rem; margin-bottom: 20px; }
                 .live-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; animation: blink-dot 1s infinite; }
                 @keyframes blink-dot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
@@ -253,8 +315,22 @@ export default function ReadVol2() {
                 .active-dislike { border-color: #ff4757; color: #ff4757; }
                 
                 .divider { height: 1px; background: linear-gradient(90deg, transparent, #333, transparent); margin: 40px 0; }
-                .image-frame { border: 2px solid #1a1a1a; box-shadow: 0 0 40px rgba(0,0,0,0.5); line-height: 0; }
-                .main-img { width: 100%; height: auto; }
+                
+                /* --- ZOOM FIX FOR VOL 2 --- */
+                .image-frame { 
+                    border: 1px solid #1a1a1a; 
+                    background: #000;
+                    line-height: 0;
+                    overflow: hidden;
+                    display: flex;
+                    justify-content: center;
+                }
+                .main-img { 
+                    width: 100%; 
+                    height: auto; 
+                    max-height: 85vh; /* PC par screen ke andar fit rahegi */
+                    object-fit: contain;
+                }
                 
                 .transmission-section { text-align: left; margin-top: 60px; background: #050505; padding: 20px; border-radius: 8px; border: 1px solid #111; }
                 .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -268,10 +344,24 @@ export default function ReadVol2() {
                 .comments-list { display: flex; flex-direction: column; gap: 15px; }
                 .comment-card { background: #080808; padding: 15px; border-left: 3px solid #222; transition: 0.3s; }
                 .comment-card:hover { border-left-color: #ffcc00; }
-                .ghost-fade { border-left-style: dashed; }
+                .ghost-fade { border-left-style: dashed; opacity: 0.9; }
+                
+                .comment-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
                 .user-name { color: #ffcc00; font-weight: bold; font-size: 0.9rem; }
                 .comment-time { color: #444; font-size: 0.75rem; }
-                
+                .page-tag { font-size: 0.6rem; background: #222; padding: 2px 6px; border-radius: 4px; color: #777; }
+                .comment-text { color: #bbb; font-size: 0.9rem; margin: 0; }
+
+                .comment-actions { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #111; padding-top: 5px; }
+                .small-action { background: none; border: none; color: #555; font-size: 0.75rem; cursor: pointer; padding: 0; }
+                .reply-trigger { color: #ffcc00; }
+
+                .reply-form { margin-top: 10px; display: flex; gap: 5px; }
+                .reply-form input { flex: 1; background: #111; border: none; padding: 8px; color: #fff; font-size: 0.8rem; outline: none; }
+                .reply-form button { background: #ffcc00; border: none; cursor: pointer; font-weight: bold; padding: 0 10px; }
+
+                .reply-card { margin-left: 20px; margin-top: 10px; padding: 10px; background: #0c0c0c; border-left: 1px solid #333; }
+
                 .sticky-nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid #ffcc00; padding: 10px 25px; border-radius: 4px; display: flex; align-items: center; gap: 20px; z-index: 1000; backdrop-filter: blur(10px); }
                 .nav-btn { background: #ffcc00; border: none; padding: 8px 20px; font-weight: bold; cursor: pointer; color: #000; }
                 
