@@ -4,27 +4,33 @@ import { useRouter } from 'next/router';
 const team = [
   {
     name: "Gyanvardhan",
-    role: "The Visionary Author",
-    desc: "Architect of the VedaVerse and the soul behind the narrative legacy.",
+    role: "Supreme Architect & Web Visionary",
+    desc: "The mastermind who engineered the VedaVerse digital gateway and the narrative legacy.",
     image: "/images/gyanvardhan.jpg" 
   },
   {
     name: "Jaivardhan",
-    role: "The Master Editor",
-    desc: "Guardian of continuity and the sharp eye behind every frame.",
+    role: "Chief Executive Overseer",
+    desc: "The final authority on continuity and the strategic lead of the Vardhan lineage.",
     image: "/images/jaivardhan.jpg"
   },
   {
     name: "Harshvardhan",
-    role: "Narrative Manager & Handler",
-    desc: "The bridge between imagination and execution, managing the saga's pulse.",
+    role: "Senior Protocol Auditor",
+    desc: "Ensuring the integrity of the saga's pulse through rigorous narrative auditing.",
     image: "/images/harshvardhan.jpg"
   },
   {
     name: "Rajvardhan",
-    role: "Creative Director",
-    desc: "The visionary force shaping the visual aesthetics of the VedaVerse.",
+    role: "Supreme Creative Auditor",
+    desc: "The elite force auditing the visual aesthetics and the core VedaVerse experience.",
     image: "/images/rajvardhan.jpg"
+  },
+  {
+    name: "Prof. Anurag Sharma",
+    role: "Chief Quantum Auditor (External)",
+    desc: "A legendary academic overseeing the simulation's integrity and multiversal sync.",
+    image: "/images/anuragsharma.png" 
   }
 ];
 
@@ -35,9 +41,9 @@ export default function Footer() {
   return (
     <footer style={{
       padding: isHomePage ? '150px 5% 40px' : '40px 5% 40px',
-      background: 'linear-gradient(to top, #000 70%, transparent 100%)', // Smooth fade from bottom
+      background: 'linear-gradient(to top, #000 70%, transparent 100%)', 
       position: 'relative',
-      zIndex: 10, // Yeh ladki (Scene3D) ke piche rahega (Scene3D usually z-index 5-10 par hota hai)
+      zIndex: 10, 
       marginTop: '100px'
     }}>
       
@@ -62,7 +68,9 @@ export default function Footer() {
                   <div className="photo-placeholder">PHOTO</div>
                 </div>
                 <h3 className="member-name">{member.name}</h3>
-                <h4 className="member-role">{member.role}</h4>
+                <h4 className="member-role" style={{ color: member.name.includes("Anurag") ? "#00ff88" : "#00d4ff" }}>
+                  {member.role}
+                </h4>
                 <p className="member-desc">{member.desc}</p>
               </div>
             ))}
@@ -81,7 +89,7 @@ export default function Footer() {
           <Link href="/disclaimer">Disclaimer</Link>
         </div>
         <div className="copyright">
-          © 2025 VARDHANS COMIC STUDIOS. ALL RIGHTS RESERVED. | VEDAVERSE DIGITAL GATEWAY
+          © 2026 VARDHANS COMIC STUDIOS. ALL RIGHTS RESERVED. | VEDAVERSE DIGITAL GATEWAY
         </div>
       </div>
 
@@ -116,7 +124,7 @@ export default function Footer() {
 
         .team-grid {
           display: grid; 
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
           gap: 30px;
           margin-bottom: 100px;
         }
@@ -124,10 +132,10 @@ export default function Footer() {
         .creator-card {
           text-align: center;
           padding: 40px 25px;
-          background: rgba(0, 0, 0, 0.7); /* Darker background for visibility */
+          background: rgba(0, 0, 0, 0.7);
           border: 1px solid rgba(255, 204, 0, 0.1);
           border-radius: 20px;
-          backdrop-filter: blur(10px); /* Makes it stand out from the red background */
+          backdrop-filter: blur(10px);
           transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -154,7 +162,7 @@ export default function Footer() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: grayscale(0.2) contrast(1.1); /* Slightly bolder photos */
+          filter: grayscale(0.2) contrast(1.1);
         }
 
         .photo-placeholder {
@@ -165,14 +173,13 @@ export default function Footer() {
 
         .member-name {
           color: #fff;
-          font-size: 1.6rem;
+          font-size: 1.4rem;
           font-weight: 800;
           margin-bottom: 8px;
         }
 
         .member-role {
-          color: #00d4ff; 
-          font-size: 0.85rem; 
+          font-size: 0.8rem; 
           font-family: monospace;
           text-transform: uppercase;
           letter-spacing: 1px;
@@ -182,7 +189,7 @@ export default function Footer() {
 
         .member-desc {
           color: #bbb; 
-          font-size: 0.95rem; 
+          font-size: 0.9rem; 
           line-height: 1.6;
           font-weight: 400;
         }
