@@ -55,21 +55,18 @@ export default function ReadVol2() {
         }
     };
 
-    // --- AUTH & SECURITY CHECK ---
+    // --- AUTH & SECURITY CHECK (UPDATED) ---
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
                 router.push('/login');
             } else {
                 setUser(currentUser);
-                const userRef = doc(db, "users", currentUser.uid);
-                const userSnap = await getDoc(userRef);
                 
-                if (userSnap.exists() && userSnap.data().unlocked_volumes?.includes(2)) {
-                    setIsAuthorized(true);
-                } else {
-                    router.push('/vault');
-                }
+                // UPDATE: Database check hata diya hai.
+                // Ab agar user login hai, toh wo seedha Authorized hai.
+                // Kyunki Volume 2 ab sabke liye free hai.
+                setIsAuthorized(true);
                 setLoading(false);
             }
         });
@@ -207,6 +204,7 @@ export default function ReadVol2() {
     const getReplies = (parentId) => allComments.filter(c => c.parentId === parentId).sort((a,b) => a.createdAt - b.createdAt);
 
     if (loading) return <div className="loader">DECRYPTING_FILES...</div>;
+    // Authorized check ab bas Login check hai, so ye sirf tab rukega agar banda login nahi hai
     if (!isAuthorized) return null;
 
     return (
