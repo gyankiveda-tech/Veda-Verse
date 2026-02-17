@@ -16,13 +16,16 @@ export default function Vault() {
   const [enteredCode, setEnteredCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isError, setIsError] = useState(false); 
-  const [unlockedVolumes, setUnlockedVolumes] = useState([1]);
-  const [showMeme, setShowMeme] = useState(false); // Meme video ke liye nayi state
+  
+  // UPDATE 1: Initial state mein 1 aur 2 dono ko unlocked rakha hai
+  const [unlockedVolumes, setUnlockedVolumes] = useState([1, 2]);
+  
+  const [showMeme, setShowMeme] = useState(false);
 
   const clickAudio = useRef(null);
   const successAudio = useRef(null);
   const errorAudio = useRef(null);
-  const memeVideoRef = useRef(null); // Video player ka reference
+  const memeVideoRef = useRef(null);
 
   useEffect(() => {
     clickAudio.current = new Audio('/sounds/click.mp3');
@@ -66,9 +69,13 @@ export default function Vault() {
         const unsubDoc = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             setTokens(docSnap.data().tokens_owned || 0);
-            if(docSnap.data().unlocked_volumes) {
-                setUnlockedVolumes(docSnap.data().unlocked_volumes);
-            }
+            
+            // UPDATE 2: Firebase se data aane par bhi 1 aur 2 ko force unlock rakhna hai
+            let dbUnlocked = docSnap.data().unlocked_volumes || [];
+            // Merge default unlocked (1, 2) with user's unlocked list specifically
+            const finalUnlocked = [...new Set([1, 2, ...dbUnlocked])];
+            
+            setUnlockedVolumes(finalUnlocked);
           }
           setLoading(false);
         });
@@ -93,17 +100,19 @@ export default function Vault() {
       if (!querySnapshot.empty) {
         // --- SUCCESS FLOW ---
         playSuccess(); 
-        setShowKeypad(false); // Keypad band karo
-        setShowMeme(true);    // Meme video shuru karo
+        setShowKeypad(false);
+        setShowMeme(true);
 
-        // Video 4 second baad apne aap band ho jayegi
         setTimeout(() => {
           setShowMeme(false);
         }, 4000);
 
         const codeDoc = querySnapshot.docs[0];
         await updateDoc(doc(db, "access_codes", codeDoc.id), { used: true, usedAt: new Date() });
+        
+        // Naya unlocked list banate waqt dhyan rakhein ki 1 aur 2 already hain
         const newUnlockedList = [...new Set([...unlockedVolumes, activeTarget])];
+        
         const userRef = doc(db, "users", auth.currentUser.uid);
         await updateDoc(userRef, { unlocked_volumes: newUnlockedList });
         
