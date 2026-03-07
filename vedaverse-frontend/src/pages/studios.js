@@ -5,39 +5,48 @@ export default function Studios() {
   const creators = [
     { 
       name: "GYANVARDHAN", 
-      role: "THE VISIONARY AUTHOR", 
-      desc: "The prime architect of the VedaVerse. He doesn't just write stories; he builds entire dimensions from the fragments of imagination.",
-      specialty: "LORE & ARCHITECTURE",
+      role: "SUPREME ARCHITECT", 
+      desc: "The prime engineer of the VedaVerse simulation. He doesn't just write scripts; he constructs reality from pure code and cosmic lore.",
+      specialty: "CORE ARCHITECTURE",
       img: "/creators/gyan.jpg",
-      id: "SUBJECT-01",
-      stats: { Lore: 99, Vision: 95, Design: 88 }
+      id: "ARCHITECT-01",
+      stats: { Lore: 99, Vision: 95, Design: 92 }
     },
     { 
       name: "JAIVARDHAN", 
-      role: "THE MASTER EDITOR", 
-      desc: "The silent guardian of continuity. His eyes see the flaws that others miss, ensuring every frame of the saga is absolute perfection.",
-      specialty: "PRECISION & CONTINUITY",
+      role: "CHIEF EXECUTIVE OVERSEER", 
+      desc: "The final judge of the Vardhan legacy. His authority governs the flow of time and continuity within the multiverse.",
+      specialty: "ABSOLUTE AUTHORITY",
       img: "/creators/jai.jpg",
-      id: "SUBJECT-02",
-      stats: { Logic: 98, Focus: 96, Flow: 92 }
+      id: "OVERSEER-02",
+      stats: { Logic: 98, Focus: 96, Flow: 94 }
     },
     { 
       name: "HARSHVARDHAN", 
-      role: "NARRATIVE MANAGER", 
-      desc: "The engine of the studio. He bridges the gap between raw creative energy and flawless execution, keeping the cosmic pulse alive.",
-      specialty: "STRATEGY & OPERATIONS",
+      role: "SENIOR PROTOCOL AUDITOR", 
+      desc: "The high-level guardian of narrative integrity. Every sequence and data-packet passes through his lethal auditing process.",
+      specialty: "SYSTEM AUDITING",
       img: "/creators/harsh.jpg",
-      id: "SUBJECT-03",
-      stats: { Strategy: 97, Ops: 94, Speed: 95 }
+      id: "AUDITOR-03",
+      stats: { Audit: 97, Ops: 95, Integrity: 98 }
     },
     { 
       name: "RAJVARDHAN", 
-      role: "CO-DIRECTOR", 
-      desc: "The creative force that shapes the visual soul of the project. He directs the aesthetic chaos into a unified cinematic experience.",
-      specialty: "CREATIVE DIRECTION",
+      role: "SUPREME VISUAL AUDITOR", 
+      desc: "The elite force behind visual dominance. He audits the aesthetic chaos, ensuring only the most superior frames survive.",
+      specialty: "AESTHETIC AUDITING",
       img: "/creators/raj.jpg",
-      id: "SUBJECT-04",
-      stats: { Visuals: 98, Aesthetic: 96, Direction: 94 }
+      id: "AUDITOR-04",
+      stats: { Visuals: 98, Aesthetic: 96, Detail: 95 }
+    },
+    { 
+      name: "PROF. ANURAG SHARMA", 
+      role: "CHIEF EXTERNAL AUDITOR", 
+      desc: "A distinguished academic and quantum systems expert. He provides independent validation of the simulation's structural stability.",
+      specialty: "EXTERNAL VALIDATION",
+      img: "/images/anurag.png", // As per your file name
+      id: "GHOST-00",
+      stats: { Analysis: 99, Accuracy: 98, Stability: 97 }
     }
   ];
 
@@ -52,9 +61,10 @@ export default function Studios() {
       
       {/* Live System Terminal */}
       <div className="system-terminal">
-        <p>{">"} VARDHAN_PROTOCOL_INITIATED...</p>
-        <p>{">"} NEURAL_LINK: STABLE</p>
-        <p>{">"} SOURCE: VEDA_CORE</p>
+        <p>{">"} VARDHAN_PROTOCOL_ENGAGED...</p>
+        <p>{">"} AUDITOR_ACCESS: GRANTED</p>
+        <p>{">"} SIMULATION_STATUS: OPTIMIZED</p>
+        <p>{">"} EXTERNAL_VERIFICATION: PROF_SHARMA_ACTIVE</p>
       </div>
 
       <main style={{ padding: '180px 5% 100px', position: 'relative', zIndex: 2 }}>
@@ -63,13 +73,13 @@ export default function Studios() {
         <div style={{ textAlign: 'center', marginBottom: '120px' }}>
           <h1 className="heavy-text">VARDHANS<br/><span className="gold-text">STUDIOS</span></h1>
           <div className="energy-beam"></div>
-          <p className="subtitle">ESTABLISHED FOR GALACTIC DOMINANCE</p>
+          <p className="subtitle">ESTABLISHED FOR MULTIVERSAL DOMINANCE</p>
         </div>
 
         {/* Creators Grid */}
         <div className="creators-container">
           {creators.map((dev, index) => (
-            <div key={index} className="rockstar-card">
+            <div key={index} className={`rockstar-card ${dev.id === 'GHOST-00' ? 'ghost-card' : ''}`}>
               <div className="card-inner">
                 <div className="image-area">
                   <img 
@@ -100,7 +110,8 @@ export default function Studios() {
                 </div>
 
                 <div className="card-footer">
-                  <span className="status-dot"></span> BIOMETRIC SCAN: VERIFIED
+                  <span className="status-dot"></span> 
+                  {dev.id === 'GHOST-00' ? "ENCRYPTED AUTHENTICATION" : "NEURAL SCAN: VERIFIED"}
                 </div>
               </div>
             </div>
@@ -126,14 +137,14 @@ export default function Studios() {
               <div className="year">2025</div>
               <div className="content">
                 <h3>GENESIS: PHASE 1</h3>
-                <p>Official launch of the VedaVerse ecosystem. Establishing the neural connection with global readers.</p>
+                <p>Official launch. Prof. Anurag Sharma joins as Lead Independent Auditor for system stability.</p>
               </div>
             </div>
             <div className="timeline-item locked">
               <div className="year">2026</div>
               <div className="content">
                 <h3>THE EXPANSION</h3>
-                <p>New media integrations and cinematic lore. Data currently protected by Veda-Encryption.</p>
+                <p>Ghost Protocol active. New media integrations and cinematic lore. Data currently protected by Veda-Encryption.</p>
               </div>
             </div>
           </div>
@@ -195,7 +206,13 @@ export default function Studios() {
           position: relative; background: #080808; border: 1px solid #111;
           transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        .ghost-card {
+          border: 1px dashed #ffcc00;
+        }
+
         .rockstar-card:hover { transform: scale(1.03); border-color: var(--electric-gold); z-index: 10; }
+        .ghost-card:hover { border-color: #ffcc00; }
 
         .image-area { height: 480px; background: #000; position: relative; overflow: hidden; }
         .creator-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); transition: 0.6s; }
@@ -206,10 +223,13 @@ export default function Studios() {
           background: rgba(0,0,0,0.7); padding: 10px; border-left: 2px solid var(--electric-gold);
           opacity: 0; transition: 0.4s; transform: translateX(-20px);
         }
+        .ghost-card .skill-hud { border-left-color: #ffcc00; }
+
         .rockstar-card:hover .skill-hud { opacity: 1; transform: translateX(0); }
         .hud-stat { font-size: 0.6rem; color: #fff; margin-bottom: 5px; }
         .stat-bar { height: 3px; background: #222; width: 100%; margin-top: 2px; }
         .stat-bar .fill { height: 100%; background: var(--electric-gold); box-shadow: 0 0 5px var(--electric-gold); }
+        .ghost-card .stat-bar .fill { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
 
         .glitch-overlay {
             position: absolute; top:0; left:0; width:100%; height:100%;
@@ -219,14 +239,16 @@ export default function Studios() {
 
         .id-tag { position: absolute; top: 20px; right: 25px; font-family: monospace; color: #333; font-weight: bold; font-size: 1.5rem; }
         .specialty-tag { position: absolute; bottom: 0; left: 0; background: var(--electric-gold); color: #000; padding: 10px 25px; font-weight: 900; font-size: 0.85rem; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); z-index: 5; }
+        .ghost-card .specialty-tag { background: #ffcc00; }
 
         .info-area { padding: 45px; background: linear-gradient(to bottom, #080808, #000); border-bottom: 1px solid #111; }
         .creator-name { font-size: 2.8rem; font-weight: 900; margin: 0; color: #fff; letter-spacing: -2px; }
         .creator-role { color: var(--electric-gold); margin: 10px 0 25px; font-size: 0.95rem; letter-spacing: 4px; font-weight: bold; text-transform: uppercase; }
+        .ghost-card .creator-role { color: #ffcc00; }
         .creator-desc { color: #666; font-size: 1rem; line-height: 1.7; font-weight: 400; }
         
         .card-footer { background: #000; padding: 20px 45px; font-size: 0.75rem; color: #333; display: flex; align-items: center; gap: 12px; font-weight: bold; border-top: 1px solid #111; }
-        .status-dot { width: 10px; height: 10px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 15px #00ff88; animation: blink 2s infinite; }
+        .status-dot { width: 10px; height: 10px; background: #ffcc00; border-radius: 50%; box-shadow: 0 0 15px #ffcc00; animation: blink 2s infinite; }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 
