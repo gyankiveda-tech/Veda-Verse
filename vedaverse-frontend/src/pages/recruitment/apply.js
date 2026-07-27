@@ -54,7 +54,7 @@ export default function Apply() {
 
     try {
       // API call to our backend (Replace localhost URL when deploying backend to Vercel/Render)
-      const response = await fetch('http://localhost:5000/api/recruitment/apply', {
+      const response = await fetch('https://veda-verse-1.onrender.com/api/recruitment/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(applicationData)

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import { auth } from '../lib/firebase';
@@ -74,7 +75,18 @@ export default function Navbar() {
           </button>
         )}
         <div className="brand-wrapper" onClick={playClick}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
+          {/* Logo and Brand Title aligned perfectly */}
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div className="logo-container">
+              <Image 
+                src="/images/veda-logo.png" 
+                alt="Vedaverse Logo" 
+                width={150} 
+                height={100} 
+                priority 
+                className="brand-logo"
+              />
+            </div>
             <h2 className="brand-title">VEDAVERSE</h2>
           </Link>
         </div>
@@ -197,6 +209,24 @@ export default function Navbar() {
           align-items: center;
         }
 
+        /* Logo Styling & Animation */
+        .logo-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .brand-logo {
+          object-fit: contain;
+          transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+          /* अगर तुम्हारा लोगो काले रंग का है और डार्क बैकग्राउंड में नहीं दिख रहा, तो नीचे वाली लाइन से /* हटा देना */
+          /* filter: invert(1) brightness(1.2); */
+        }
+
+        .brand-wrapper:hover .brand-logo {
+          transform: scale(1.1) rotate(5deg);
+        }
+
         .brand-title {
           font-family: 'Cinzel', serif;
           color: #f4f0eb;
@@ -207,7 +237,7 @@ export default function Navbar() {
           transition: color 0.3s ease;
         }
 
-        .brand-title:hover {
+        .brand-wrapper:hover .brand-title {
           color: #c5a059;
         }
 

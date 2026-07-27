@@ -30,7 +30,7 @@ export default function Register() {
 
     try {
       // ✅ UPDATED: Using the new live Render URL provided
-      const res = await fetch('https://veda-verse-9hpl.onrender.com/api/auth/register', {
+      const res = await fetch('https://veda-verse-1.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })

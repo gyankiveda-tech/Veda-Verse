@@ -26,7 +26,7 @@ export default function VerifyOTP() {
 
         try {
             // ✅ UPDATED: Using the new live Render URL
-            const res = await fetch('https://veda-verse-9hpl.onrender.com/api/auth/verify-otp', {
+            const res = await fetch('https://veda-verse-1.onrender.com/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp })

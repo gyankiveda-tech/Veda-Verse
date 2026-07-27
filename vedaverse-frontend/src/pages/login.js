@@ -63,7 +63,7 @@ export default function Login() {
       // 2. ✅ UPDATED: Using the new live Render URL for backend check (if needed)
       // Note: Humne register aur verify-otp mein isi domain ka use kiya hai.
       try {
-          await fetch('https://veda-verse-9hpl.onrender.com/api/auth/login', {
+          await fetch('https://veda-verse-1.onrender.com/api/auth/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email, password })
