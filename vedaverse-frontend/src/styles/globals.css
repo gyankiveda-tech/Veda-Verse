@@ -1,14 +1,18 @@
-/* VedaVerse Cosmic-Noir Theme - Final Mobile & Desktop Sync */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+/* VedaVerse Studio - Premium Brand Identity Design System */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap');
 
 :root {
-  --obsidian: #050505;
-  --space-grey: #1a1a1a;
-  --electric-gold: #FFD700;
-  --neon-blue: #00F3FF;
-  --neon-red: #ff4757;
-  --neon-green: #00ff88;
-  --text-dim: #b3b3b3;
+  /* Official Brand Colors */
+  --ink: #030303;         /* Primary - Ink: The dominant colour of the system */
+  --indigo: #0a0f1a;      /* Secondary - Indigo: Deep midnight blue for depth */
+  --paper: #f4f0eb;       /* Neutral - Paper: Warm, bone-toned white */
+  --paper-dim: #d0c8be;   /* Dimmed Paper for supporting text */
+  --ember: #c5a059;       /* Accent - Ember: Muted gold for ceremony/emphasis */
+  
+  /* Utility & Structure Colors */
+  --ink-light: #0a0a0a;
+  --border-subtle: rgba(244, 240, 235, 0.08);
+  --ember-dim: rgba(197, 160, 89, 0.2);
 }
 
 * {
@@ -20,17 +24,40 @@
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: var(--obsidian);
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
+  background-color: var(--ink);
+  color: var(--paper);
+  font-family: 'Inter', sans-serif; /* Body - Humanist Sans */
+  font-weight: 300;
   scroll-behavior: smooth;
   touch-action: manipulation; 
+  line-height: 1.6;
+  
+  /* Phase G UX: Text Rendering Optimization for Premium Feel */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Typography Hierarchy */
 h1, h2, h3, .cinzel {
-  font-family: 'Cinzel', serif;
+  font-family: 'Cinzel', serif; /* Headings - Editorial Serif */
+  font-weight: 400;
   letter-spacing: 2px;
   text-transform: uppercase;
+  color: var(--paper);
+}
+
+p, span, div {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Utility Class for Metadata/Captions */
+.utility-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--paper-dim);
 }
 
 /* --- Responsive Containers --- */
@@ -38,79 +65,83 @@ h1, h2, h3, .cinzel {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px; /* Generous margins for editorial feel */
 }
 
 /* --- Interaction Buttons --- */
 .inter-btn {
-  background: #111;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 5px;
+  background: transparent;
+  border: 1px solid var(--ember);
+  color: var(--ember);
+  padding: 12px 28px;
+  border-radius: 2px; /* Geometric & Minimal */
   cursor: pointer;
-  transition: 0.3s;
-  font-weight: bold;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
-.inter-btn:hover { border-color: var(--electric-gold); }
 
-/* Cinematic Background */
-.cosmic-bg {
+.inter-btn:hover { 
+  background: var(--ember);
+  color: var(--ink);
+}
+
+/* Cinematic Background - Deep Indigo to Ink */
+.studio-bg {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+  background: radial-gradient(circle at 50% 30%, var(--indigo) 0%, var(--ink) 100%);
   z-index: -1;
 }
 
-/* --- 📱 MOBILE ORIENTATION LOCK 📱 --- */
+/* Structural Lines (Graphic Elements) */
+hr, .divider-line {
+  border: none;
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 40px 0;
+}
+
+.ember-line {
+  border: none;
+  height: 1px;
+  background-color: var(--ember);
+  width: 60px;
+  margin: 20px 0;
+}
+
+/* --- 📱 MOBILE OPTIMIZATION (Phase G Fixes) 📱 --- */
 @media screen and (max-width: 900px) {
   
-  /* Jab phone horizontal (Landscape) ho jaye */
-  @media (orientation: landscape) {
-    body {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vh !important; /* Width ko Height bana diya */
-      height: 100vw !important; /* Height ko Width bana diya */
-      transform: rotate(-90deg); /* Zabardasti ghuma diya Portrait mein */
-      transform-origin: top left;
-      margin-top: 100vw;
-      overflow-y: scroll;
-      overflow-x: hidden;
-    }
-
-    .vortex-container, .mobile-interface {
-      width: 100vh !important;
-      height: 100vw !important;
-    }
-  }
-
-  .content-flow {
-    padding-top: 50vh !important;
-    max-width: 100vw !important;
-  }
-
   header, nav {
-    padding: 15px !important;
+    padding: 15px 20px !important;
+  }
+
+  .container {
+    padding: 0 20px;
   }
 
   .mobile-title {
-    font-size: clamp(2.5rem, 10vw, 4rem) !important;
+    font-size: clamp(2rem, 8vw, 3.5rem) !important;
   }
 
   .mobile-desc {
-    font-size: 0.8rem !important;
-    max-width: 80% !important;
+    font-size: 0.9rem !important;
+    max-width: 90% !important;
     margin: 0 auto;
   }
 
   [class*="access-portal"], [class*="Login_box"] {
-    width: 90% !important;
+    width: 95% !important;
     margin: 0 auto !important;
-    padding: 25px !important;
+    padding: 30px 20px !important;
     position: relative !important;
+    border: 1px solid var(--border-subtle);
+    background: var(--ink-light);
   }
 
   .hud-overlay {
@@ -118,7 +149,11 @@ h1, h2, h3, .cinzel {
   }
 }
 
-/* Scrollbar Style */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #000; }
-::-webkit-scrollbar-thumb { background: var(--electric-gold); border-radius: 10px; }
+/* Scrollbar Style - Restrained & Premium */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { 
+  background: var(--ember); 
+  border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: #dcb873; }

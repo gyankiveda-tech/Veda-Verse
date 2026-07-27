@@ -1,152 +1,153 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+
+const Navbar = dynamic(() => import('../components/Navbar'), { ssr: false });
+const Footer = dynamic(() => import('../components/Footer'), { ssr: false });
+const AudioEngine = dynamic(() => import('../components/AudioEngine'), { ssr: false });
 
 export default function Studios() {
-  const creators = [
-    { 
-      name: "GYANVARDHAN", 
-      role: "SUPREME ARCHITECT", 
-      desc: "The prime engineer of the VedaVerse simulation. He doesn't just write scripts; he constructs reality from pure code and cosmic lore.",
-      specialty: "CORE ARCHITECTURE",
-      img: "/creators/gyan.jpg",
-      id: "ARCHITECT-01",
-      stats: { Lore: 99, Vision: 95, Design: 92 }
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Feature 7: Only Founder Remains
+  const founder = {
+    name: "GYAN VARDHAN",
+    role: "FOUNDER, CEO & CREATIVE DIRECTOR",
+    desc: "Holding ultimate creative authority over Vedaverse Studio. Defining the creative territory, story direction, brand identity, and ensuring every leadership decision remains aligned with the studio's long-term vision.",
+    img: "/images/gyan.jpg",
+  };
+
+  // Feature 8: Future Team Placeholders (Hiring Open)
+  const openPositions = [
+    {
+      role: "CREATIVE DIRECTOR",
+      status: "HIRING OPEN",
+      desc: "Managing the intersection between story development and visual execution. Overseeing narrative pacing, story-visual alignment, and cross-departmental creative coherence."
     },
-    { 
-      name: "JAIVARDHAN", 
-      role: "CHIEF EXECUTIVE OVERSEER", 
-      desc: "The final judge of the Vardhan legacy. His authority governs the flow of time and continuity within the multiverse.",
-      specialty: "ABSOLUTE AUTHORITY",
-      img: "/creators/jai.jpg",
-      id: "OVERSEER-02",
-      stats: { Logic: 98, Focus: 96, Flow: 94 }
-    },
-    { 
-      name: "HARSHVARDHAN", 
-      role: "SENIOR PROTOCOL AUDITOR", 
-      desc: "The high-level guardian of narrative integrity. Every sequence and data-packet passes through his lethal auditing process.",
-      specialty: "SYSTEM AUDITING",
-      img: "/creators/harsh.jpg",
-      id: "AUDITOR-03",
-      stats: { Audit: 97, Ops: 95, Integrity: 98 }
-    },
-    { 
-      name: "RAJVARDHAN", 
-      role: "SUPREME VISUAL AUDITOR", 
-      desc: "The elite force behind visual dominance. He audits the aesthetic chaos, ensuring only the most superior frames survive.",
-      specialty: "AESTHETIC AUDITING",
-      img: "/creators/raj.jpg",
-      id: "AUDITOR-04",
-      stats: { Visuals: 98, Aesthetic: 96, Detail: 95 }
-    },
-    { 
-      name: "PROF. ANURAG SHARMA", 
-      role: "CHIEF EXTERNAL AUDITOR", 
-      desc: "A distinguished academic and quantum systems expert. He provides independent validation of the simulation's structural stability.",
-      specialty: "EXTERNAL VALIDATION",
-      img: "/images/anurag.png", // As per your file name
-      id: "GHOST-00",
-      stats: { Analysis: 99, Accuracy: 98, Stability: 97 }
+    {
+      role: "LEAD ART DIRECTOR",
+      status: "HIRING OPEN",
+      desc: "Setting the visual standard. Ensuring character consistency, compositional quality, background design, panel flow, and rendering standards across all studio output."
     }
   ];
 
   return (
-    <div className="no-select studio-root" style={{ background: '#000', minHeight: '100vh', overflowX: 'hidden' }}>
-      <Navbar />
-      
-      {/* Cinematic Overlays */}
-      <div className="scanline"></div>
-      <div className="studio-noise"></div>
-      <div className="ambient-glow"></div>
-      
-      {/* Live System Terminal */}
-      <div className="system-terminal">
-        <p>{">"} VARDHAN_PROTOCOL_ENGAGED...</p>
-        <p>{">"} AUDITOR_ACCESS: GRANTED</p>
-        <p>{">"} SIMULATION_STATUS: OPTIMIZED</p>
-        <p>{">"} EXTERNAL_VERIFICATION: PROF_SHARMA_ACTIVE</p>
-      </div>
+    <div className="studio-root no-select">
+      <Head>
+        <title>The Studio | VedaVerse</title>
+        <meta name="description" content="Inside VedaVerse: The Creative Hub and Organization." />
+      </Head>
 
-      <main style={{ padding: '180px 5% 100px', position: 'relative', zIndex: 2 }}>
+      <AudioEngine />
+      <Navbar />
+
+      <main className="main-content">
         
         {/* Header Section */}
-        <div style={{ textAlign: 'center', marginBottom: '120px' }}>
-          <h1 className="heavy-text">VARDHANS<br/><span className="gold-text">STUDIOS</span></h1>
-          <div className="energy-beam"></div>
-          <p className="subtitle">ESTABLISHED FOR MULTIVERSAL DOMINANCE</p>
-        </div>
+        <section className="page-header">
+          <h4 className="utility-tag">CREATIVE HUB</h4>
+          <h1 className="main-title">THE <span className="gold">STUDIO</span></h1>
+          <div className="ember-line-center"></div>
+          <p className="subtitle">
+            A production pipeline exists to protect the work. Quality depends on discipline, systems, and the people who uphold them.
+          </p>
+        </section>
 
-        {/* Creators Grid */}
-        <div className="creators-container">
-          {creators.map((dev, index) => (
-            <div key={index} className={`rockstar-card ${dev.id === 'GHOST-00' ? 'ghost-card' : ''}`}>
-              <div className="card-inner">
-                <div className="image-area">
-                  <img 
-                    src={dev.img} 
-                    alt={dev.name} 
-                    className="creator-img"
-                    onError={(e) => { e.target.style.display = 'none'; }} 
-                  />
-                  <div className="glitch-overlay"></div>
-                  <div className="id-tag">{dev.id}</div>
-                  <div className="specialty-tag">{dev.specialty}</div>
-                  
-                  {/* Skill HUD Overlay */}
-                  <div className="skill-hud">
-                    {Object.entries(dev.stats).map(([label, value]) => (
-                      <div key={label} className="hud-stat">
-                        <span>{label}</span>
-                        <div className="stat-bar"><div className="fill" style={{width: `${value}%`}}></div></div>
-                      </div>
-                    ))}
+        {/* Feature 7: The Architect (Founder Only) */}
+        <section className="section-container">
+          <div className="founder-showcase">
+            <div className="founder-image-wrapper">
+              <img src={founder.img} alt={founder.name} className="founder-image" />
+            </div>
+            <div className="founder-details">
+              <h4 className="utility-tag">THE ARCHITECT</h4>
+              <h2 className="name-title">{founder.name}</h2>
+              <h3 className="role-title">{founder.role}</h3>
+              <div className="ember-line"></div>
+              <p className="desc-text">{founder.desc}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature 10: Organization Chart (Hierarchy) */}
+        <section className="section-container hierarchy-section">
+          <div className="section-header">
+            <h2 className="section-title">STUDIO <span className="gold">HIERARCHY</span></h2>
+            <div className="ember-line-center"></div>
+            <p className="desc-text text-center">
+              Clear reporting lines ensure that direction is focused and feedback is precise. Our hierarchy is not a pyramid of authority, but a conduit for creative vision.
+            </p>
+          </div>
+
+          <div className="org-chart">
+            <div className="org-node level-1">
+              <span className="org-role">FOUNDER / CEO</span>
+            </div>
+            <div className="org-line vertical"></div>
+            <div className="org-node level-2">
+              <span className="org-role">STUDIO DIRECTOR</span>
+            </div>
+            <div className="org-line vertical"></div>
+            
+            <div className="org-branches">
+              <div className="org-branch-line"></div>
+              <div className="org-nodes-row">
+                <div className="org-col">
+                  <div className="org-node level-3">
+                    <span className="org-role">CREATIVE DIRECTOR</span>
+                  </div>
+                  <div className="org-line vertical"></div>
+                  <div className="org-node level-4">
+                    <span className="org-role">ART DIRECTOR</span>
                   </div>
                 </div>
-                
-                <div className="info-area">
-                  <h2 className="creator-name">{dev.name}</h2>
-                  <h4 className="creator-role">{dev.role}</h4>
-                  <p className="creator-desc">{dev.desc}</p>
-                </div>
-
-                <div className="card-footer">
-                  <span className="status-dot"></span> 
-                  {dev.id === 'GHOST-00' ? "ENCRYPTED AUTHENTICATION" : "NEURAL SCAN: VERIFIED"}
+                <div className="org-col">
+                  <div className="org-node level-3">
+                    <span className="org-role">PRODUCTION MANAGER</span>
+                  </div>
+                  <div className="org-line vertical"></div>
+                  <div className="org-node level-4">
+                    <span className="org-role">LEAD ARTISTS</span>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Project Evolution Timeline */}
-        <section style={{ marginTop: '180px' }}>
-          <div className="section-header" style={{textAlign: 'center', marginBottom: '80px'}}>
-            <h2 className="heavy-text" style={{ fontSize: '4.5rem' }}>PROJECT <span className="gold-text">EVOLUTION</span></h2>
-            <p style={{color: '#444', letterSpacing: '5px', marginTop: '10px'}}>TEMPORAL_LOGS_v4.0</p>
           </div>
-          
-          <div className="timeline-container">
-            <div className="timeline-item">
-              <div className="year">2024</div>
-              <div className="content">
-                <h3>THE CONCEPT PHASE</h3>
-                <p>The Four Pillars united. World-building and cosmic scripting of the VedaVerse began in absolute secrecy.</p>
+        </section>
+
+        {/* Feature 8: Studio Team (Empty Positions) */}
+        <section className="section-container">
+          <div className="section-header">
+            <h2 className="section-title">LEADERSHIP <span className="gold">VACANCIES</span></h2>
+            <div className="ember-line-center"></div>
+            <p className="desc-text text-center">
+              We are actively seeking foundational leaders who will protect the studio's creative identity and enforce our operational standards.
+            </p>
+          </div>
+
+          <div className="open-positions-grid">
+            {openPositions.map((pos, index) => (
+              <div key={index} className="empty-position-card">
+                <div className="card-top">
+                  <span className="status-badge blink-slow">{pos.status}</span>
+                </div>
+                <div className="card-body">
+                  <h3 className="vacant-role">{pos.role}</h3>
+                  <div className="ember-line"></div>
+                  <p className="vacant-desc">{pos.desc}</p>
+                </div>
+                <div className="card-footer">
+                  <button className="inter-btn">VIEW REQUIREMENTS</button>
+                </div>
               </div>
-            </div>
-            <div className="timeline-item active">
-              <div className="year">2025</div>
-              <div className="content">
-                <h3>GENESIS: PHASE 1</h3>
-                <p>Official launch. Prof. Anurag Sharma joins as Lead Independent Auditor for system stability.</p>
-              </div>
-            </div>
-            <div className="timeline-item locked">
-              <div className="year">2026</div>
-              <div className="content">
-                <h3>THE EXPANSION</h3>
-                <p>Ghost Protocol active. New media integrations and cinematic lore. Data currently protected by Veda-Encryption.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -155,116 +156,305 @@ export default function Studios() {
       <Footer />
 
       <style jsx>{`
-        .studio-root { --electric-gold: #ffcc00; }
-        
-        .heavy-text {
-          font-size: 7.5rem; font-weight: 900; line-height: 0.8;
-          color: #fff; letter-spacing: -4px; margin: 0;
+        .studio-root {
+          background-color: #030303; /* Ink */
+          color: #f4f0eb; /* Paper */
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .main-content {
+          padding: 150px 5% 100px;
+          position: relative;
+          z-index: 2;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .utility-tag {
+          font-family: 'Inter', monospace;
+          font-size: 0.75rem;
+          letter-spacing: 3px;
+          color: #a09a90;
           text-transform: uppercase;
+          margin-bottom: 10px;
         }
-        .gold-text { color: var(--electric-gold); text-shadow: 0 0 30px rgba(255, 204, 0, 0.4); }
+
+        /* Header Styles */
+        .page-header {
+          text-align: center;
+          margin-bottom: 100px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .main-title {
+          font-family: 'Cinzel', serif;
+          font-size: clamp(3rem, 8vw, 5rem);
+          font-weight: 400;
+          letter-spacing: 2px;
+          margin: 0;
+        }
+
+        .gold { color: #c5a059; } /* Ember */
         
-        .energy-beam { 
-          width: 150px; height: 4px; background: #ffcc00; margin: 30px auto; 
-          box-shadow: 0 0 20px #ffcc00; position: relative;
+        .ember-line-center {
+          width: 60px; height: 1px; background: #c5a059; margin: 25px auto;
         }
-
-        .system-terminal {
-          position: fixed; top: 150px; left: 20px; font-family: monospace;
-          color: var(--electric-gold); font-size: 0.65rem; opacity: 0.4; z-index: 5;
-          pointer-events: none;
-        }
-
-        .scanline {
-          width: 100%; height: 10px; background: rgba(255, 204, 0, 0.03);
-          position: fixed; top: 0; left: 0; z-index: 10;
-          animation: scan 8s linear infinite; pointer-events: none;
-        }
-
-        @keyframes scan { from { top: -100px; } to { top: 100vh; } }
-
-        .subtitle { letter-spacing: 12px; color: #555; font-weight: bold; font-size: 0.9rem; }
-
-        .studio-noise {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: url('https://www.transparenttextures.com/patterns/stardust.png');
-          opacity: 0.15; pointer-events: none; z-index: 1;
-        }
-
-        .ambient-glow {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 70vw; height: 70vh; background: radial-gradient(circle, rgba(255, 204, 0, 0.05) 0%, transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
-
-        .creators-container {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-          gap: 40px; max-width: 1600px; margin: 0 auto;
-        }
-
-        .rockstar-card {
-          position: relative; background: #080808; border: 1px solid #111;
-          transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .ghost-card {
-          border: 1px dashed #ffcc00;
-        }
-
-        .rockstar-card:hover { transform: scale(1.03); border-color: var(--electric-gold); z-index: 10; }
-        .ghost-card:hover { border-color: #ffcc00; }
-
-        .image-area { height: 480px; background: #000; position: relative; overflow: hidden; }
-        .creator-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); transition: 0.6s; }
-        .rockstar-card:hover .creator-img { filter: grayscale(0) contrast(1); transform: scale(1.08); }
         
-        .skill-hud {
-          position: absolute; top: 20px; left: 20px; width: 120px;
-          background: rgba(0,0,0,0.7); padding: 10px; border-left: 2px solid var(--electric-gold);
-          opacity: 0; transition: 0.4s; transform: translateX(-20px);
-        }
-        .ghost-card .skill-hud { border-left-color: #ffcc00; }
-
-        .rockstar-card:hover .skill-hud { opacity: 1; transform: translateX(0); }
-        .hud-stat { font-size: 0.6rem; color: #fff; margin-bottom: 5px; }
-        .stat-bar { height: 3px; background: #222; width: 100%; margin-top: 2px; }
-        .stat-bar .fill { height: 100%; background: var(--electric-gold); box-shadow: 0 0 5px var(--electric-gold); }
-        .ghost-card .stat-bar .fill { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
-
-        .glitch-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; opacity: 0.4;
+        .ember-line {
+          width: 40px; height: 1px; background: #c5a059; margin: 20px 0;
         }
 
-        .id-tag { position: absolute; top: 20px; right: 25px; font-family: monospace; color: #333; font-weight: bold; font-size: 1.5rem; }
-        .specialty-tag { position: absolute; bottom: 0; left: 0; background: var(--electric-gold); color: #000; padding: 10px 25px; font-weight: 900; font-size: 0.85rem; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); z-index: 5; }
-        .ghost-card .specialty-tag { background: #ffcc00; }
+        .subtitle {
+          color: #d0c8be;
+          font-size: 1.1rem;
+          line-height: 1.8;
+          max-width: 600px;
+          font-weight: 300;
+        }
 
-        .info-area { padding: 45px; background: linear-gradient(to bottom, #080808, #000); border-bottom: 1px solid #111; }
-        .creator-name { font-size: 2.8rem; font-weight: 900; margin: 0; color: #fff; letter-spacing: -2px; }
-        .creator-role { color: var(--electric-gold); margin: 10px 0 25px; font-size: 0.95rem; letter-spacing: 4px; font-weight: bold; text-transform: uppercase; }
-        .ghost-card .creator-role { color: #ffcc00; }
-        .creator-desc { color: #666; font-size: 1rem; line-height: 1.7; font-weight: 400; }
+        .desc-text {
+          color: #a09a90;
+          font-size: 1rem;
+          line-height: 1.8;
+          font-weight: 300;
+        }
+        .text-center { text-align: center; margin: 0 auto; max-width: 700px; }
+
+        .section-container {
+          margin-bottom: 120px;
+        }
+
+        .section-header {
+          margin-bottom: 60px;
+        }
+
+        .section-title {
+          font-family: 'Cinzel', serif;
+          font-size: 2.5rem;
+          font-weight: 400;
+          text-align: center;
+          letter-spacing: 2px;
+          margin: 0;
+        }
+
+        /* Founder Showcase */
+        .founder-showcase {
+          display: flex;
+          gap: 60px;
+          align-items: center;
+          background: #0a0a0a;
+          border: 1px solid rgba(244, 240, 235, 0.05);
+          padding: 60px;
+        }
+
+        .founder-image-wrapper {
+          width: 300px;
+          height: 350px;
+          flex-shrink: 0;
+          border: 1px solid #222;
+          padding: 10px;
+        }
+
+        .founder-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: grayscale(100%) contrast(1.1);
+        }
+
+        .name-title {
+          font-family: 'Cinzel', serif;
+          font-size: 2.5rem;
+          font-weight: 400;
+          margin: 5px 0;
+          letter-spacing: 1px;
+        }
+
+        .role-title {
+          font-size: 0.85rem;
+          letter-spacing: 2px;
+          color: #c5a059;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin: 0;
+        }
+
+        /* Organization Chart */
+        .hierarchy-section {
+          background: radial-gradient(circle at top, #0a0f1a 0%, #030303 100%);
+          padding: 60px 0;
+          border-top: 1px solid #111;
+          border-bottom: 1px solid #111;
+        }
+
+        .org-chart {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 50px;
+        }
+
+        .org-node {
+          border: 1px solid #333;
+          padding: 15px 30px;
+          background: #050505;
+          min-width: 250px;
+          text-align: center;
+          transition: 0.3s ease;
+        }
+        .org-node:hover { border-color: #c5a059; }
+
+        .level-1 { border-top: 2px solid #c5a059; }
+
+        .org-role {
+          font-family: 'Inter', sans-serif;
+          font-weight: 600;
+          font-size: 0.85rem;
+          letter-spacing: 2px;
+          color: #f4f0eb;
+        }
+
+        .org-line.vertical {
+          width: 1px;
+          height: 40px;
+          background: #333;
+        }
+
+        .org-branches {
+          position: relative;
+          width: 100%;
+          max-width: 600px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .org-branch-line {
+          width: calc(100% - 250px);
+          height: 1px;
+          background: #333;
+          position: absolute;
+          top: 0;
+        }
+
+        .org-nodes-row {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          padding-top: 40px; /* Space for the vertical drops */
+          position: relative;
+        }
         
-        .card-footer { background: #000; padding: 20px 45px; font-size: 0.75rem; color: #333; display: flex; align-items: center; gap: 12px; font-weight: bold; border-top: 1px solid #111; }
-        .status-dot { width: 10px; height: 10px; background: #ffcc00; border-radius: 50%; box-shadow: 0 0 15px #ffcc00; animation: blink 2s infinite; }
+        .org-nodes-row::before, .org-nodes-row::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 1px;
+            height: 40px;
+            background: #333;
+        }
+        .org-nodes-row::before { left: 125px; } /* Center of left node */
+        .org-nodes-row::after { right: 125px; } /* Center of right node */
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .org-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
 
-        .timeline-container { max-width: 900px; margin: 0 auto; border-left: 1px dashed #222; padding-left: 80px; }
-        .timeline-item { position: relative; margin-bottom: 100px; }
-        .year { position: absolute; left: -160px; color: #1a1a1a; font-weight: 900; font-size: 3.5rem; transition: 0.4s; }
-        .timeline-item.active .year { color: var(--electric-gold); text-shadow: 0 0 25px rgba(255, 204, 0, 0.4); }
-        .timeline-item.locked { filter: blur(3px); opacity: 0.2; }
-        .content h3 { color: #fff; margin: 0 0 15px; font-size: 2.2rem; letter-spacing: 4px; }
-        .content p { color: #444; margin: 0; font-size: 1.2rem; line-height: 1.8; }
+        /* Empty Positions Grid */
+        .open-positions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 40px;
+        }
 
-        @media (max-width: 1024px) {
-            .heavy-text { font-size: 4rem; }
-            .creators-container { grid-template-columns: 1fr; }
-            .year { position: static; margin-bottom: 10px; display: block; font-size: 2.5rem; }
-            .timeline-container { border-left: none; padding-left: 0; text-align: center; }
+        .empty-position-card {
+          background: #080808;
+          border: 1px dashed #333;
+          padding: 40px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: 0.4s ease;
+        }
+
+        .empty-position-card:hover {
+          border-style: solid;
+          border-color: #c5a059;
+          transform: translateY(-5px);
+        }
+
+        .status-badge {
+          display: inline-block;
+          font-size: 0.65rem;
+          font-weight: 600;
+          letter-spacing: 2px;
+          padding: 4px 10px;
+          background: rgba(197, 160, 89, 0.1);
+          color: #c5a059;
+          border: 1px solid #c5a059;
+        }
+
+        .blink-slow {
+          animation: blink-soft 3s infinite;
+        }
+
+        @keyframes blink-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .vacant-role {
+          font-family: 'Cinzel', serif;
+          font-size: 1.8rem;
+          font-weight: 400;
+          margin: 20px 0 0 0;
+          color: #f4f0eb;
+        }
+
+        .vacant-desc {
+          color: #a09a90;
+          font-size: 0.95rem;
+          line-height: 1.7;
+          margin-bottom: 30px;
+        }
+
+        .card-footer {
+          margin-top: auto;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+          .founder-showcase {
+            flex-direction: column;
+            padding: 30px;
+            text-align: center;
+          }
+          .founder-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+          .founder-image-wrapper {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1/1;
+          }
+          .org-branch-line, .org-nodes-row::before, .org-nodes-row::after {
+             display: none; /* Simplify org chart on mobile */
+          }
+          .org-nodes-row {
+            flex-direction: column;
+            padding-top: 0;
+            gap: 40px;
+          }
+          .org-col { gap: 0px; }
+          .org-col .org-node.level-3 { margin-bottom: 0;}
+          .org-col .vertical { display: block; }
         }
       `}</style>
     </div>

@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const volumeRoutes = require('./routes/volumeRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const recruitmentRoutes = require('./routes/recruitmentRoutes'); // 🚀 Added Recruitment Route
 
 dotenv.config();
 const app = express();
@@ -30,6 +31,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/volumes', volumeRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/recruitment', recruitmentRoutes); // 🚀 Registered Recruitment API Endpoint
 
 app.get('/', (req, res) => {
     res.send("VedaVerse API is Running... Galactic Gateway Open.");
